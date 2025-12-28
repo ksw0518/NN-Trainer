@@ -144,5 +144,16 @@ struct Tensor
 		((idx += static_cast<usize>(args) * strides[strideIdx++]), ...);
 		return data[idx];
 	}
-
+	Tensor row(size_t r) const {
+		Tensor out(dim(1));
+		for (size_t c = 0; c < dim(1); c++)
+			out(c) = (*this)(r, c);
+		return out;
+	}
+	void setRow(size_t r, const Tensor& row) {
+		assert(dimensionality == 2);
+		assert(row.dim(0) == dim(1)); // row must match number of columns
+		for (size_t c = 0; c < dim(1); c++)
+			(*this)(r, c) = row(c);
+	}
 };

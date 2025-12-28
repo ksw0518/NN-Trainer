@@ -49,10 +49,24 @@ struct Network
 	void addLayer(Layer* layer) {
 		layers.emplace_back(layer);
 	}
-	Tensor forward(const Tensor& input) {
-		Tensor x = input;
-		for (auto& layer : layers)
-			x = layer->forward(x);
-		return x;
+	Tensor forward(const Tensor& batchInput)
+	{
+		assert(batchInput.dimensionality == 2);
+		size_t batchSize = batchInput.dim(0);
+		size_t inputSize = batchInput.dim(1);
+		Linear* lastLinear = dynamic_cast<Linear*>(layers.back().get());
+		assert(lastLinear != nullptr);
+		size_t outputSize = lastLinear->weight.dim(1);
+
+		Tensor out(batchSize, outputSize);
+
+		for (size_t b = 0; b < batchInput.dim(0); b++) {
+			Tensor x = batchInput.row(b);  // slice single row
+			for (auto& layer : layers)
+				x = layer->forward(x);
+			out.setRow(b, x); // write back
+		}
+		return out;
 	}
+
 };
